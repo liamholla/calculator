@@ -43,3 +43,33 @@ const operate = function (num1, num2, operator) {
   }
   return result;
 };
+
+// Display on the calculator
+const calcDisplay = document.querySelector(".display");
+
+// select only the number divs
+const numberElements = document.querySelectorAll(".button.number");
+
+// Create a function to call when the user clicks on a number
+const numberClickEventListener = function (event) {
+  console.log(event.target.textContent);
+  let numberText = event.target.textContent;
+
+  calcDisplay.textContent = calcDisplay.textContent + `${numberText}`;
+  numberText = calcDisplay.textContent;
+  console.log(numberText);
+};
+
+// allow clicking on each of the number divs
+numberElements.forEach(function (buttons) {
+  buttons.addEventListener("click", numberClickEventListener);
+});
+
+/*
+// select all of the column divs
+const buttonElements = document.querySelectorAll(".button");
+
+buttonElements.forEach(function (buttons) {
+  buttons.addEventListener("click", buttonClickEventListener);
+});
+*/
