@@ -18,12 +18,42 @@ const divide = function (array) {
     : 0;
 };
 
-let numberText1 = "";
-let numberText2 = "";
 let operatorText = "";
 let operatorAllowed = "off";
 let operatorClickCount = 0;
 let displayValue = "";
+
+let numberObject = [
+  {
+    id: 0,
+    number: "",
+  },
+];
+
+let operatorObject = [];
+
+let orderOfOperations = [
+  {
+    symbol: "^",
+    order: 1,
+  },
+  {
+    symbol: "\u00F7",
+    order: 2,
+  },
+  {
+    symbol: "\u00d7",
+    order: 3,
+  },
+  {
+    symbol: "\u002b",
+    order: 4,
+  },
+  {
+    symbol: "\u002d",
+    order: 5,
+  },
+];
 
 const operate = function (num1, num2, operator) {
   let result = 0;
@@ -59,23 +89,18 @@ const numberClickEventListener = function (event) {
   numberClicked = event.target.textContent;
   console.log(`The number clicked was ${numberClicked}`);
 
-  if (operatorClickCount === 0) {
-    numberText1 = numberText1 + event.target.textContent;
-    //display the number
-    calcDisplay.textContent = calcDisplay.textContent + `${numberClicked}`;
-  } else if (operatorClickCount === 1) {
-    numberText2 = numberText2 + event.target.textContent;
-    //display the number
-    calcDisplay.textContent = calcDisplay.textContent + `${numberClicked}`;
-  }
+  // Add the number to the numberObject array, this is so we can store multiple
+  // numbers
+  const nObj = numberObject.find((item) => item.id === operatorClickCount);
+  nObj.number = nObj.number + numberClicked;
+  console.log(nObj);
 
-  console.log(`The number text 1 value is : ${numberText1}`);
-  console.log(`The number text 2 value is : ${numberText2}`);
+  //Display the number
+  calcDisplay.textContent = calcDisplay.textContent + `${numberClicked}`;
+
   //update operatorAllowed
   operatorAllowed = "on";
   console.log(`Operator allowed: ${operatorAllowed}`);
-
-  return numberText1;
 };
 
 // select only the operator divs
@@ -85,18 +110,44 @@ const operatorElements = document.querySelectorAll(".button.operator");
 const operatorClickEventListener = function (event) {
   operatorClicked = event.target.textContent;
   console.log(`The operator clicked was ${operatorClicked}`);
-  operatorText = operatorClicked;
+  operatorClicked;
 
   if (operatorAllowed === "on") {
     operatorClickCount++;
     console.log(`Operator click count: ${operatorClickCount}`);
     //add the operator to display
     calcDisplay.textContent = calcDisplay.textContent + `${operatorClicked}`;
+
+    // add in the order of the operation to the array
+    const orderObj = orderOfOperations.find((item) => {
+      return item.symbol === operatorClicked;
+    });
+    console.log(orderObj);
+    orderToSort = orderObj.order;
+
+    //Add a new object to the operator array
+    const newOpObj = {
+      id: operatorClickCount - 1,
+      operator: operatorClicked,
+      order: orderToSort,
+    };
+
+    //Push that object to the array
+    operatorObject.push(newOpObj);
+    console.log(operatorObject);
+
+    // add a new member to the array
+    const newNumObj = {
+      id: operatorClickCount,
+      number: "",
+    };
+
+    //add new object to number array
+    numberObject.push(newNumObj);
   }
+
   operatorAllowed = "off";
   console.log(`Operator allowed: ${operatorAllowed}`);
-
-  return operatorText;
 };
 
 // allow clicking on each of the number divs
@@ -109,11 +160,22 @@ operatorElements.forEach(function (buttons) {
   buttons.addEventListener("click", operatorClickEventListener);
 });
 
-/*
-// select all of the column divs
-const buttonElements = document.querySelectorAll(".button");
+const allClearElement = document.querySelector("#allClear");
+allClearElement.addEventListener("click", function () {
+  console.log("All clear");
 
-buttonElements.forEach(function (buttons) {
-  buttons.addEventListener("click", buttonClickEventListener);
+  operatorText = "";
+  operatorAllowed = "off";
+  operatorClickCount = 0;
+  displayValue = "";
+  calcDisplay.textContent = displayValue;
+
+  numberObject = [
+    {
+      id: 0,
+      number: "",
+    },
+  ];
+
+  operatorObject = [];
 });
-*/
