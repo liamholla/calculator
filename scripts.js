@@ -23,14 +23,14 @@ let operatorAllowed = "off";
 let operatorClickCount = 0;
 let displayValue = "";
 
-let numberObject = [
+let numberArray = [
   {
     id: 0,
-    number: "",
+    number: 0,
   },
 ];
 
-let operatorObject = [];
+let operatorArray = [];
 
 let orderOfOperations = [
   {
@@ -89,9 +89,9 @@ const numberClickEventListener = function (event) {
   numberClicked = event.target.textContent;
   console.log(`The number clicked was ${numberClicked}`);
 
-  // Add the number to the numberObject array, this is so we can store multiple
+  // Add the number to the numberArray, this is so we can store multiple
   // numbers
-  const nObj = numberObject.find((item) => item.id === operatorClickCount);
+  const nObj = numberArray.find((item) => item.id === operatorClickCount);
   nObj.number = nObj.number + numberClicked;
   console.log(nObj);
 
@@ -133,17 +133,17 @@ const operatorClickEventListener = function (event) {
     };
 
     //Push that object to the array
-    operatorObject.push(newOpObj);
-    console.log(operatorObject);
+    operatorArray.push(newOpObj);
+    console.log(operatorArray);
 
     // add a new member to the array
     const newNumObj = {
       id: operatorClickCount,
-      number: "",
+      number: 0,
     };
 
     //add new object to number array
-    numberObject.push(newNumObj);
+    numberArray.push(newNumObj);
   }
 
   operatorAllowed = "off";
@@ -160,6 +160,7 @@ operatorElements.forEach(function (buttons) {
   buttons.addEventListener("click", operatorClickEventListener);
 });
 
+// clear and reset everything with the AC button
 const allClearElement = document.querySelector("#allClear");
 allClearElement.addEventListener("click", function () {
   console.log("All clear");
@@ -170,12 +171,41 @@ allClearElement.addEventListener("click", function () {
   displayValue = "";
   calcDisplay.textContent = displayValue;
 
-  numberObject = [
+  numberArray = [
     {
       id: 0,
       number: "",
     },
   ];
 
-  operatorObject = [];
+  operatorArray = [];
+});
+
+// evaluate when the "=" button is pressed
+const equalButtonElement = document.querySelector(".button.equals");
+equalButtonElement.addEventListener("click", function () {
+  // sort the operators in ascending order
+  const operatorSorted = operatorArray.sort(function (a, b) {
+    if (a.order < b.order) {
+      return -1;
+    } else if (a.order > b.order) {
+      return 1;
+    } else {
+      return 0;
+    }
+  });
+  console.log(operatorSorted);
+
+  const operatorArrayLength = operatorSorted.length;
+  console.log(operatorSorted.length);
+
+  for (i = 0; i < operatorArrayLength; i++) {
+    const operatorID = operatorSorted[i].id;
+    const operatorSign = operatorSorted[i].operator;
+    const numberA = numberArray[operatorID].number;
+    const numberB = numberArray[operatorID + 1].number;
+
+    const textToDo = `${numberA} ${operatorSign} ${numberB}`;
+    console.log(textToDo);
+  }
 });
