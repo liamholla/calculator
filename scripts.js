@@ -6,16 +6,12 @@ const subtract = function (a, b) {
   return a - b;
 };
 
-const multiply = function (array) {
-  return array.length
-    ? array.reduce((accumulator, nextItem) => accumulator * nextItem)
-    : 0;
+const multiply = function (a, b) {
+  return a * b;
 };
 
-const divide = function (array) {
-  return array.length
-    ? array.reduce((accumulator, nextItem) => accumulator / nextItem)
-    : 0;
+const divide = function (a, b) {
+  return a / b;
 };
 
 let operatorText = "";
@@ -202,10 +198,15 @@ equalButtonElement.addEventListener("click", function () {
   for (i = 0; i < operatorArrayLength; i++) {
     const operatorID = operatorSorted[i].id;
     const operatorSign = operatorSorted[i].operator;
-    const numberA = numberArray[operatorID].number;
-    const numberB = numberArray[operatorID + 1].number;
+    const numberA = Number(numberArray[operatorID].number);
+    const numberB = Number(numberArray[operatorID + 1].number);
 
     const textToDo = `${numberA} ${operatorSign} ${numberB}`;
     console.log(textToDo);
+
+    if (operatorSign === "\u00F7") {
+      console.log(divide(numberA, numberB));
+      // return divide(numberA, numberB);
+    }
   }
 });
