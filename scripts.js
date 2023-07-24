@@ -14,57 +14,20 @@ const divide = function (a, b) {
   return a / b;
 };
 
-let operatorText = "";
-let operatorAllowed = "off";
-let operatorClickCount = 0;
-let displayValue = "";
-
-let numberArray = [
-  {
-    id: 0,
-    number: 0,
-  },
-];
-
-let operatorArray = [];
-
-let orderOfOperations = [
-  {
-    symbol: "^",
-    order: 1,
-  },
-  {
-    symbol: "\u00F7",
-    order: 2,
-  },
-  {
-    symbol: "\u00d7",
-    order: 3,
-  },
-  {
-    symbol: "\u002b",
-    order: 4,
-  },
-  {
-    symbol: "\u002d",
-    order: 5,
-  },
-];
-
-const operate = function (num1, num2, operator) {
+const equate = function (num1, num2, operator) {
   let result = 0;
   switch (operator) {
-    case "+":
+    case "\u002b":
       result = add(num1, num2);
       break;
-    case "-":
+    case "\u002d":
       result = subtract(num1, num2);
       break;
-    case "*":
-      result = multiply([num1, num2]);
+    case "\u00d7":
+      result = multiply(num1, num2);
       break;
-    case "/":
-      result = divide([num1, num2]);
+    case "\u00F7":
+      result = divide(num1, num2);
       break;
 
     default:
@@ -73,8 +36,18 @@ const operate = function (num1, num2, operator) {
   return result;
 };
 
+let operatorAllowed = "off";
+let operatorClickCount = 0;
+let number1 = "";
+let number2 = "";
+let equalsClickCount = 0;
+let operator;
+let equalCount = 0;
+
+let equationHistory = [];
+
 // Display on the calculator
-const calcDisplay = document.querySelector(".display");
+const operatorDisplay = document.querySelector(".display > .operations");
 
 // select only the number div
 const numberElements = document.querySelectorAll(".button.number");
@@ -85,18 +58,25 @@ const numberClickEventListener = function (event) {
   numberClicked = event.target.textContent;
   console.log(`The number clicked was ${numberClicked}`);
 
-  // Add the number to the numberArray, this is so we can store multiple
-  // numbers
-  const nObj = numberArray.find((item) => item.id === operatorClickCount);
-  nObj.number = nObj.number + numberClicked;
-  console.log(nObj);
+  if (operatorClickCount === 0) {
+    number1 = number1 + numberClicked;
+    console.log(`Number 1 is ${number1}`);
+
+    //update operatorAllowed
+    operatorAllowed = "on";
+    console.log(`Operator allowed: ${operatorAllowed}`);
+  } else if (operatorClickCount >= 1) {
+    number2 = number2 + numberClicked;
+    console.log(`Number 2 is ${number2}`);
+
+    //update operatorAllowed
+    operatorAllowed = "off";
+    console.log(`Operator allowed: ${operatorAllowed}`);
+  }
 
   //Display the number
-  calcDisplay.textContent = calcDisplay.textContent + `${numberClicked}`;
-
-  //update operatorAllowed
-  operatorAllowed = "on";
-  console.log(`Operator allowed: ${operatorAllowed}`);
+  operatorDisplay.textContent =
+    operatorDisplay.textContent + `${numberClicked}`;
 };
 
 // select only the operator divs
@@ -106,44 +86,19 @@ const operatorElements = document.querySelectorAll(".button.operator");
 const operatorClickEventListener = function (event) {
   operatorClicked = event.target.textContent;
   console.log(`The operator clicked was ${operatorClicked}`);
-  operatorClicked;
 
   if (operatorAllowed === "on") {
     operatorClickCount++;
     console.log(`Operator click count: ${operatorClickCount}`);
     //add the operator to display
-    calcDisplay.textContent = calcDisplay.textContent + `${operatorClicked}`;
+    operatorDisplay.textContent =
+      operatorDisplay.textContent + `${operatorClicked}`;
 
-    // add in the order of the operation to the array
-    const orderObj = orderOfOperations.find((item) => {
-      return item.symbol === operatorClicked;
-    });
-    console.log(orderObj);
-    orderToSort = orderObj.order;
+    operator = operatorClicked;
 
-    //Add a new object to the operator array
-    const newOpObj = {
-      id: operatorClickCount - 1,
-      operator: operatorClicked,
-      order: orderToSort,
-    };
-
-    //Push that object to the array
-    operatorArray.push(newOpObj);
-    console.log(operatorArray);
-
-    // add a new member to the array
-    const newNumObj = {
-      id: operatorClickCount,
-      number: 0,
-    };
-
-    //add new object to number array
-    numberArray.push(newNumObj);
+    operatorAllowed = "off";
+    console.log(`Operator allowed: ${operatorAllowed}`);
   }
-
-  operatorAllowed = "off";
-  console.log(`Operator allowed: ${operatorAllowed}`);
 };
 
 // allow clicking on each of the number divs
@@ -156,57 +111,59 @@ operatorElements.forEach(function (buttons) {
   buttons.addEventListener("click", operatorClickEventListener);
 });
 
+// Display on the calculator
+const equalsDisplay = document.querySelector(".display > .answer");
+
+// evaluate when the "=" button is pressed
+const equalButtonElement = document.querySelector(".button.equals");
+equalButtonElement.addEventListener("click", function () {
+  equalCount++;
+  number1Float = parseFloat(number1);
+  number2Float = parseFloat(number2);
+
+  let result = 0;
+
+  result = equate(number1Float, number2Float, operator);
+  console.log(result);
+
+  const newEqualObject = {
+    id: equalCount,
+    num1: number1Float,
+    num2: number2Float,
+    op: operator,
+    res: result,
+  };
+
+  //Change the answers div
+  equalsDisplay.textContent = result;
+
+  // Remove the operations display
+  operatorDisplay.textContent = "";
+
+  equationHistory.push(newEqualObject);
+  console.table(equationHistory);
+
+  number1 = result;
+  number2 = "";
+  operator = "";
+  operatorClickCount = 1;
+  operatorAllowed = "on";
+});
+
 // clear and reset everything with the AC button
 const allClearElement = document.querySelector("#allClear");
 allClearElement.addEventListener("click", function () {
   console.log("All clear");
 
-  operatorText = "";
   operatorAllowed = "off";
   operatorClickCount = 0;
-  displayValue = "";
-  calcDisplay.textContent = displayValue;
+  number1 = "";
+  number2 = "";
+  equalsClickCount = 0;
+  operator;
+  equalCount = 0;
+  equationHistory = [];
 
-  numberArray = [
-    {
-      id: 0,
-      number: "",
-    },
-  ];
-
-  operatorArray = [];
-});
-
-// evaluate when the "=" button is pressed
-const equalButtonElement = document.querySelector(".button.equals");
-equalButtonElement.addEventListener("click", function () {
-  // sort the operators in ascending order
-  const operatorSorted = operatorArray.sort(function (a, b) {
-    if (a.order < b.order) {
-      return -1;
-    } else if (a.order > b.order) {
-      return 1;
-    } else {
-      return 0;
-    }
-  });
-  console.log(operatorSorted);
-
-  const operatorArrayLength = operatorSorted.length;
-  console.log(operatorSorted.length);
-
-  for (i = 0; i < operatorArrayLength; i++) {
-    const operatorID = operatorSorted[i].id;
-    const operatorSign = operatorSorted[i].operator;
-    const numberA = Number(numberArray[operatorID].number);
-    const numberB = Number(numberArray[operatorID + 1].number);
-
-    const textToDo = `${numberA} ${operatorSign} ${numberB}`;
-    console.log(textToDo);
-
-    if (operatorSign === "\u00F7") {
-      console.log(divide(numberA, numberB));
-      // return divide(numberA, numberB);
-    }
-  }
+  operatorDisplay.textContent = "";
+  equalsDisplay.textContent = "";
 });
