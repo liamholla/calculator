@@ -41,8 +41,8 @@ let operatorClickCount = 0;
 let number1 = "";
 let number2 = "";
 let equalsClickCount = 0;
-let operator;
-let equalCount = 0;
+let operator = "";
+let result = 0;
 
 let equationHistory = [];
 
@@ -54,6 +54,10 @@ const numberElements = document.querySelectorAll(".button.number");
 
 // Create a function to call when the user clicks on a number
 const numberClickEventListener = function (event) {
+  if (equalsClickCount > 0 && operatorAllowed === "on") {
+    return;
+  }
+
   // store the number
   numberClicked = event.target.textContent;
   console.log(`The number clicked was ${numberClicked}`);
@@ -117,37 +121,73 @@ const equalsDisplay = document.querySelector(".display > .answer");
 // evaluate when the "=" button is pressed
 const equalButtonElement = document.querySelector(".button.equals");
 equalButtonElement.addEventListener("click", function () {
-  equalCount++;
-  number1Float = parseFloat(number1);
-  number2Float = parseFloat(number2);
+  if (operator.length > 0) {
+    equalsClickCount++;
+    number1Float = parseFloat(number1);
+    number2Float = parseFloat(number2);
 
-  let result = 0;
+    result = equate(number1Float, number2Float, operator);
 
-  result = equate(number1Float, number2Float, operator);
-  console.log(result);
+    // logic to convert weird numbers
+    function formatNumber(number) {
+      if (Number.isInteger(number)) {
+        if (number.toString().length <= 12) {
+          return number.toLocaleString(); // Return the integer with thousand separators
+        } else {
+          return number.toExponential(2); // Return the number in scientific notation with 2 decimal places
+        }
+      } else if (Number.isFinite(number)) {
+        const absNumber = Math.abs(number);
 
-  const newEqualObject = {
-    id: equalCount,
-    num1: number1Float,
-    num2: number2Float,
-    op: operator,
-    res: result,
-  };
+        if (absNumber < 1e12) {
+          const decimalPlaces = getDecimalPlaces(number);
+          return decimalPlaces <= 12
+            ? number.toPrecision(decimalPlaces)
+            : number.toFixed(2);
+        } else {
+          return number.toExponential(2); // Return the number in scientific notation with 2 decimal places
+        }
+      } else {
+        return "NaN"; // Handle non-finite numbers like Infinity and NaN
+      }
+    }
 
-  //Change the answers div
-  equalsDisplay.textContent = result;
+    function getDecimalPlaces(number) {
+      const match = (number
+        .toString()
+        .match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/) || [""])[1];
+      return match ? match.length : 0;
+    }
 
-  // Remove the operations display
-  operatorDisplay.textContent = "";
+    finalResult = formatNumber(result);
 
-  equationHistory.push(newEqualObject);
-  console.table(equationHistory);
+    console.log(result);
 
-  number1 = result;
-  number2 = "";
-  operator = "";
-  operatorClickCount = 1;
-  operatorAllowed = "on";
+    const newEqualObject = {
+      id: equalsClickCount,
+      num1: number1Float,
+      num2: number2Float,
+      op: operator,
+      res: result,
+    };
+
+    //Change the answers div
+    equalsDisplay.textContent = finalResult;
+
+    // Remove the operations display
+    operatorDisplay.textContent = "";
+
+    equationHistory.push(newEqualObject);
+    console.table(equationHistory);
+
+    // reset some of the variables
+    number1 = result;
+    number2 = "";
+    operator = "";
+    operatorClickCount = 1;
+    operatorAllowed = "on";
+  }
+  return;
 });
 
 // clear and reset everything with the AC button
@@ -161,9 +201,55 @@ allClearElement.addEventListener("click", function () {
   number2 = "";
   equalsClickCount = 0;
   operator;
-  equalCount = 0;
+  equalsClickCount = 0;
   equationHistory = [];
 
   operatorDisplay.textContent = "";
   equalsDisplay.textContent = "";
+});
+
+// select the backspace character
+const backspaceElement = document.querySelector("#backspace");
+
+// all the logic to determine which variable to remove digits from
+backspaceElement.addEventListener("click", function () {
+  if (number1.length > 0 && operatorAllowed === "on" && number2.length === 0) {
+    number1 = number1.slice(0, -1);
+    operatorDisplay.textContent = operatorDisplay.textContent.slice(0, -1);
+    console.log(`New number 1: ${number1}`);
+  } else if (
+    number1.length > 0 &&
+    operatorAllowed === "off" &&
+    number2.length === 0
+  ) {
+    operator = "";
+    operatorAllowed = "on";
+    operatorDisplay.textContent = operatorDisplay.textContent.slice(0, -1);
+    console.log(`New operator: ${operator}`);
+  } else if (
+    number1.length > 0 &&
+    operatorAllowed === "off" &&
+    number2.length > 0
+  ) {
+    number2 = number2.slice(0, -1);
+    operatorDisplay.textContent = operatorDisplay.textContent.slice(0, -1);
+    console.log(`New number 1: ${number2}`);
+  } else if (
+    number1 === result &&
+    operatorAllowed === "off" &&
+    number2.length === 0
+  ) {
+    operator = "";
+    operatorAllowed = "on";
+    operatorDisplay.textContent = operatorDisplay.textContent.slice(0, -1);
+    console.log(`New operator: ${operator}`);
+  } else if (
+    number1 === result &&
+    operatorAllowed === "off" &&
+    number2.length > 0
+  ) {
+    number2 = number2.slice(0, -1);
+    operatorDisplay.textContent = operatorDisplay.textContent.slice(0, -1);
+    console.log(`New number 1: ${number2}`);
+  }
 });
